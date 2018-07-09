@@ -32,6 +32,13 @@ class CalendarHeader extends Component {
     this.substractMonth = this.substractMonth.bind(this);
     this.onPressLeft = this.onPressLeft.bind(this);
     this.onPressRight = this.onPressRight.bind(this);
+
+    this.state = {
+      wrapperWidth: 0
+    }
+
+    this.leftArrow = this.leftArrow.bind(this)
+    this.rightArrow = this.rightArrow.bind(this)
   }
 
   addMonth() {
@@ -59,6 +66,7 @@ class CalendarHeader extends Component {
   }
 
   onPressLeft() {
+    console.log('this.state.wrapperWidth', this.state.wrapperWidth)
     const {onPressArrowLeft} = this.props;
     if(typeof onPressArrowLeft === 'function') {
       return onPressArrowLeft(this.substractMonth);
@@ -67,6 +75,7 @@ class CalendarHeader extends Component {
   }
 
   onPressRight() {
+    console.log('this.state.wrapperWidth', this.state.wrapperWidth)
     const {onPressArrowRight} = this.props;
     if(typeof onPressArrowRight === 'function') {
       return onPressArrowRight(this.addMonth);
@@ -74,55 +83,64 @@ class CalendarHeader extends Component {
     return this.addMonth();
   }
 
+  leftArrow () {
+    return (
+      <TouchableOpacity
+        onPress={this.onPressLeft}
+        style={[this.style.arrow, {borderWidth: 1, borderColor: '#797979', borderRadius: 2, width: this.state.wrapperWidth / 7, height: this.state.wrapperWidth / 7, left: -10, justifyContent: 'center', alignItems: 'center'}]}
+        hitSlop={{left: 20, right: 20, top: 20, bottom: 20}}
+      >
+        {this.props.renderArrow
+          ? this.props.renderArrow('left')
+          : <Image
+            source={require('../img/previous.png')}
+            style={[this.style.arrowImage, {height: 17.5, width: 10}]}
+          />}
+      </TouchableOpacity>
+    )
+  }
+
+  rightArrow () {
+    return (
+      <TouchableOpacity
+        onPress={this.onPressRight}
+        style={[this.style.arrow, {borderWidth: 1, borderColor: '#797979', borderRadius: 2, width: this.state.wrapperWidth / 7, height: this.state.wrapperWidth / 7, right: -10, justifyContent: 'center', alignItems: 'center'}]}
+        hitSlop={{left: 20, right: 20, top: 20, bottom: 20}}
+      >
+        {this.props.renderArrow
+          ? this.props.renderArrow('right')
+          : <Image
+            source={require('../img/next.png')}
+            style={[this.style.arrowImage, {height: 17.5, width: 10}]}
+          />}
+      </TouchableOpacity>
+    )
+  }
+
+
   render() {
-    let leftArrow = <View />;
-    let rightArrow = <View />;
     let weekDaysNames = weekDayNames(this.props.firstDay);
-    if (!this.props.hideArrows) {
-      leftArrow = (
-        <TouchableOpacity
-          onPress={this.onPressLeft}
-          style={this.style.arrow}
-          hitSlop={{left: 20, right: 20, top: 20, bottom: 20}}
-        >
-          {this.props.renderArrow
-            ? this.props.renderArrow('left')
-            : <Image
-                source={require('../img/previous.png')}
-                style={this.style.arrowImage}
-              />}
-        </TouchableOpacity>
-      );
-      rightArrow = (
-        <TouchableOpacity
-          onPress={this.onPressRight}
-          style={this.style.arrow}
-          hitSlop={{left: 20, right: 20, top: 20, bottom: 20}}
-        >
-          {this.props.renderArrow
-            ? this.props.renderArrow('right')
-            : <Image
-                source={require('../img/next.png')}
-                style={this.style.arrowImage}
-              />}
-        </TouchableOpacity>
-      );
-    }
     let indicator;
     if (this.props.showIndicator) {
       indicator = <ActivityIndicator />;
     }
     return (
-      <View>
-        <View style={this.style.header}>
-          {leftArrow}
+      <View onLayout={(event) => {
+        this.setState({
+          wrapperWidth: event.nativeEvent.layout.width
+        }, () => {
+          this.forceUpdate()
+        })
+      }}>
+        <View style={[this.style.header]}>
+          {this.leftArrow()}
           <View style={{ flexDirection: 'row' }}>
             <Text allowFontScaling={false} style={this.style.monthText} accessibilityTraits='header'>
               {this.props.month.toString(this.props.monthFormat)}
             </Text>
             {indicator}
           </View>
-          {rightArrow}
+          {this.rightArrow()}
         </View>
         {
           !this.props.hideDayNames &&
